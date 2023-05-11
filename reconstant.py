@@ -32,7 +32,7 @@ class Outputer (BaseModel):
     def __del__(self):
         self._output.close()
 
-    def output_enum(self, enum: Enum, prefix="", assignment="=", suffix=""):
+    def output_enum(self, enum: Enum, prefix="", assignment=" = ", suffix=""):
         for (key, value) in enum.values.items():
             if type(value) == int:
                 parsed_value = value
@@ -40,7 +40,7 @@ class Outputer (BaseModel):
                 parsed_value = f'"{value}"'
             else:
                 raise Exception("Internal error - illegal constant type. %s", type(value))
-            self._output.write(f"{prefix}{key} {assignment} {parsed_value}{suffix}\n")
+            self._output.write(f"{prefix}{key}{assignment}{parsed_value}{suffix}\n")
 
     def output_comment(self, comment):
         indent = '\t' * self._comment_indentation
@@ -87,7 +87,7 @@ class JavascriptOutputer (Outputer):
 
     def output_enum(self, enum : Enum):
         self._output.write(f"export const {enum.name} = {{\n")
-        super().output_enum(enum, prefix=f"\t", assignment=":", suffix=",")
+        super().output_enum(enum, prefix=f"\t", assignment=": ", suffix=",")
         self._output.write(f"}}\n")
 
     def output_constant(self, constant: Constant):
