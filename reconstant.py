@@ -9,7 +9,7 @@ from pydantic import BaseModel, PrivateAttr
 
 class Enum (BaseModel):
     name: str
-    values: List[str]
+    values: Dict[str, Union[int, str]]
 
 
 class Constant (BaseModel):
@@ -33,8 +33,14 @@ class Outputer (BaseModel):
         self._output.close()
 
     def output_enum(self, enum: Enum, prefix="", assignment="=", suffix=""):
-        for (i, value) in enumerate(enum.values):
-            self._output.write(f"{prefix}{value} {assignment} {i}{suffix}\n")
+        for (key, value) in enum.values.items():
+            if type(value) == int:
+                parsed_value = value
+            elif type(value) == str:
+                parsed_value = f'"{value}"'
+            else:
+                raise Exception("Internal error - illegal constant type. %s", type(value))
+            self._output.write(f"{prefix}{key} {assignment} {parsed_value}{suffix}\n")
 
     def output_comment(self, comment):
         indent = '\t' * self._comment_indentation
