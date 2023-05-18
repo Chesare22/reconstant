@@ -1,4 +1,5 @@
 import argparse
+import functools
 import os
 import yaml
 import textwrap
@@ -219,15 +220,26 @@ def process_input(config: RootConfig):
         outputer.output_footer()
     
 
+def read_yaml_file(filename: str):
+    with open(filename, "r") as f:
+        return yaml.safe_load(f)
+    
+def merge_configs(config1: dict, config2: dict):
+    return {
+        "enums": config1.get("enums", []) + config2.get("enums", []),
+        "constants": config1.get("constants", []) + config2.get("constants", []),
+        "outputs": config1.get("outputs", None) or config2.get("outputs", None)
+    }
+
 def main():
     parser = argparse.ArgumentParser(description='Reconstant - Share constant definitions between programming languages and make your constants constant again.')
-    parser.add_argument('input', type=str, help='input file in yaml format')
+    parser.add_argument('input', nargs='+', type=str, help='input file in yaml format')
     args = parser.parse_args()
 
-    with open(args.input, "r") as yaml_input:
-        python_obj = yaml.safe_load(yaml_input)
-        config = RootConfig.parse_obj(python_obj)
-        process_input(config)
+    python_objs = [read_yaml_file(filename) for filename in args.input]
+    python_obj = functools.reduce(merge_configs, python_objs, {})
+    config = RootConfig.parse_obj(python_obj)
+    process_input(config)
 
 if __name__ == "__main__":
     main()
